@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block main %}
+
+<div class="page-wrapper">
+    <div class="section">
+        <div class="container">
+            <div class="w-layout-grid hero-grid">
+                <div class="text-box _500px">
+                    <h1 class="heading h1">Search and discover surf maps</h1>
+                    <p class="paragraph large">Rate maps and get previews</p>
+                    <div class="spacer _16"></div>
+                    <a href="/search" class="button w-button">Search Now</a>
+                </div>
+                <img src="{{ url_for('static', filename='images/surfdb.png') }}" alt="Surf DB">
+            </div>
+        </div>
+    </div>           
+</div>
+
+<div>
+    <div class="container2">
+        <div class="table-container">
+            <h2 class="bodyheading">Popular Maps</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Map Name</th>
+                        <th>Type</th>
+                        <th>Tier</th>
+                        <th>Ratings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for map in popular_maps %}
+                        <tr>
+                            <td><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
+                            <td>{{ map.type }}</td>
+                            <td>{{ map.tier }}</td>
+                            <td>{{ map.rating_count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-container">
+            <h2 class="bodyheading">Best Maps</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Map Name</th>
+                        <th>Type</th>
+                        <th>Tier</th>
+                        <th>Average Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for map in best_maps %}
+                        {% if map.average_rating|round(2) < 4 %}
+                            {% set class_name = 'rating-red' %}
+                        {% elif 4 <= map.average_rating|round(2) <= 7 %}
+                            {% set class_name = 'rating-yellow' %}
+                        {% else %}
+                            {% set class_name = 'rating-green' %}
+                        {% endif %}
+                        <tr>
+                            <td><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
+                            <td>{{ map.type }}</td>
+                            <td>{{ map.tier }}</td>
+                            <td class="{{ class_name }}">{{ map.average_rating|round(2) }} / 10</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

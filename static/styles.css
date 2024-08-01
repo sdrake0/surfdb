@@ -1,0 +1,219 @@
+body {
+    margin: 0;
+    font-family: 'Abel', sans-serif;
+    background-color: #5c006c;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #b000cf;
+    padding: 10px 20px;
+    overflow: hidden;
+    height: 40px;
+}
+
+.navbar-logo img {
+    height: 80px;
+    width: auto;
+    object-fit: cover;
+    object-position: center;
+}
+
+.navbar-menu {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-menu li {
+    margin-left: 20px;
+    font-family: 'Abel', sans-serif;
+    font-size: 20px;
+    padding: 10px 20px;
+    font-weight: bold;
+    display: block;
+}
+
+.navbar-menu li a {
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    font-family: 'Abel', sans-serif;
+    font-size: 20px;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: block;
+    background-color: #b000cf;
+    border-radius: 10px;
+}
+
+.navbar-menu li a:hover {
+    background-color: #9000a9;
+    border-radius: 5px;
+}
+
+.page-wrapper {
+    width: 100%;
+    min-height: 50vh;
+    position: relative;
+    background-color: #7d0093;
+}
+
+.section {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    position: relative;
+}
+
+.container {
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: 1230px;
+    min-height: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 50px;
+    padding-right: 50px;
+    display: block;
+    position: relative;
+}
+
+.heading {
+    font-weight: 600;
+    display: block;
+    font-family: 'Abel', sans-serif;
+}
+
+.heading.h1 {
+    margin-bottom: 18px;
+    font-size: 46px;
+    line-height: 1.25em;
+}
+
+.spacer {
+    height: 48px;
+}
+
+.spacer._16 {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.text-box {
+    max-width: 650px;
+    position: relative;
+}
+
+.text-box._500px {
+    max-width: 500px;
+}
+
+.w-layout-grid {
+    grid-row-gap: 16px;
+    grid-column-gap: 16px;
+    grid-template-rows: auto auto;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-columns: 1fr;
+    display: grid;
+}
+
+img {
+    max-width: 100%;
+    display: inline-block;
+    border-radius: 9px;
+}
+
+.paragraph.large {
+    font-size: 20px;
+    line-height: 1.5em;
+    font-family: 'Abel', sans-serif;
+}
+
+.hero-grid {
+    grid-template-rows: auto;
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+}
+
+.button {
+    background-color: #000000;
+    color: white;
+    text-align: center;
+    border-radius: 9px;
+    flex: none;
+    margin-bottom: 8px;
+    padding: 8px 28px;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: 'Abel', sans-serif;
+    line-height: 1.5;
+    transition: box-shadow .2s, transform .2s, border-color .2s, color .2s, background-color .2s;
+    box-shadow: 0 2px rgba(32, 32, 32, 0.5);
+    text-decoration: none;
+}
+
+.button:hover {
+    background-color: rgba(61, 61, 61, 0.8);
+}
+
+.button:active {
+    background-color: gray;
+    transform: translate(0, 2px);
+    box-shadow: 0 0 rgba(32, 32, 32, 0)
+}
+
+.container2 {
+    display: flex;
+    justify-content: space-around;
+}
+.table-container {
+    width: 45%;
+}
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove space between borders */
+    margin: 0 auto; /* Center the table */
+}
+
+thead th {
+    background-color: #b000cf; 
+    color: #333; /* Dark text color */
+    padding: 12px 15px; /* Padding for header cells */
+    text-align: left; /* Align text to the left */
+}
+
+tbody tr:nth-child(even) {
+    background-color: #7d0093; /* Alternating row colors */
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #9000a9;
+}
+
+tbody td {
+    padding: 12px 15px; /* Padding for data cells */
+}
+
+table, th, td {
+    border: none; /* Remove default table borders */
+}
+
+tbody tr:hover {
+    filter: brightness(70%);
+}
+
+.bodyheading {
+    margin-bottom: 18px;
+    font-size: 46px;
+    line-height: 1.25em;
+    color: #ffffff;
+}
+
+.rating-red { color: #ff0000; }   /* Red for ratings < 4 */
+.rating-yellow { color: #ffd700; } /* Yellow for ratings 4-7 */
+.rating-green { color: #00ff00; }  /* Green for ratings > 7 */

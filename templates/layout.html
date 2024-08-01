@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfDB</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <meta name="google-signin-client_id" content="370465136464-d21p30j6pjg46adpmfqc50qjs7h30mvi.apps.googleusercontent.com">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        #profile-container, #logout-container {
+            display: none; /* Hide profile and logout buttons initially */
+        }
+    </style>
+    <script>
+        function handleCredentialResponse(response) {
+            const id_token = response.credential;
+
+            // Send the token to the server via an AJAX request
+            fetch('/tokensignin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id_token: id_token })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'User authenticated') {
+                    // Redirect the user to a different page
+                    window.location.href = '/';
+                } else {
+                    console.error('Authentication failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function initGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '370465136464-d21p30j6pjg46adpmfqc50qjs7h30mvi.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById('custom-google-signin-button'),
+                { theme: 'outline', size: 'large' } 
+            );
+        }
+    </script>
+</head>
+<body onload="initGoogleSignIn()">
+    <nav class="navbar">
+        <a class="navbar-logo" href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/surfdb.png') }}" alt="Logo">
+        </a>
+        <ul class="navbar-menu">
+            <li><a href="/search">Search</a></li>
+            <li>|</li>
+            <li><a href="/howto">How to Surf</a></li>
+            <li>|</li>
+            <li><a href="/request">Request</a></li>
+        </ul>
+        <div class="collapse navbar-collapse" id="navbar">
+            {% if session['userid'] %}
+            <ul class="navbar-menu">
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+            {% else %}
+            <div id="custom-google-signin-button"></div>           
+            {% endif %} 
+        </div>
+    </nav>
+    {% block main %}
+    {% endblock %}
+</body>
+
+</html>
+
