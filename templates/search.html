@@ -1,1 +1,27 @@
-a
+{% extends "layout.html" %}
+
+{% block main %}
+
+<div>
+    <form id="search-form">
+        <div class="search-container">
+            <input type="text" class="search-bar" id="search-input" placeholder="Search for Maps" autofocus autocomplete="off">
+        </div>        
+        <select name="type" class="filter">
+            <option value="">All Types</option>
+            <option value="type1">Type 1</option>
+            <option value="type2">Type 2</option>
+            <!-- Add more filter options as needed -->
+        </select>
+        <select name="tier" class="filter">
+            <option value="">All Tiers</option>
+            <option value="1">Tier 1</option>
+            <option value="2">Tier 2</option>
+            <!-- Add more filter options as needed -->
+        </select>
+
+        <button type="submit" class="search-button">Search</button>
+    </form>
+</div>
+
+{% endblock %}

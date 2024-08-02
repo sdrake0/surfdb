@@ -22,7 +22,7 @@
     <div class="container2">
         <div class="table-container">
             <h2 class="bodyheading">Popular Maps</h2>
-            <table>
+            <table class="indextable">
                 <thead>
                     <tr>
                         <th>Map Name</th>
@@ -34,7 +34,7 @@
                 <tbody>
                     {% for map in popular_maps %}
                         <tr>
-                            <td><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
+                            <td class="plain"><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
                             <td>{{ map.type }}</td>
                             <td>{{ map.tier }}</td>
                             <td>{{ map.rating_count }}</td>
@@ -46,7 +46,7 @@
         
         <div class="table-container">
             <h2 class="bodyheading">Best Maps</h2>
-            <table border="1">
+            <table class="indextable">
                 <thead>
                     <tr>
                         <th>Map Name</th>
@@ -65,7 +65,7 @@
                             {% set class_name = 'rating-green' %}
                         {% endif %}
                         <tr>
-                            <td><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
+                            <td class="plain"><a href="{{ url_for('map_page', map_name=map.name) }}">{{ map.name }}</a></td>
                             <td>{{ map.type }}</td>
                             <td>{{ map.tier }}</td>
                             <td class="{{ class_name }}">{{ map.average_rating|round(2) }} / 10</td>

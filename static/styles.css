@@ -2,6 +2,7 @@ body {
     margin: 0;
     font-family: 'Abel', sans-serif;
     background-color: #5c006c;
+    overflow-x: hidden;
 }
 
 .navbar {
@@ -176,19 +177,19 @@ img {
 /* Table */
 table {
     width: 100%;
-    border-collapse: collapse; /* Remove space between borders */
-    margin: 0 auto; /* Center the table */
+    border-collapse: collapse;
+    margin: 0 auto;
 }
 
 thead th {
     background-color: #b000cf; 
-    color: #333; /* Dark text color */
-    padding: 12px 15px; /* Padding for header cells */
-    text-align: left; /* Align text to the left */
+    color: #333; 
+    padding: 12px 15px; 
+    text-align: left; 
 }
 
 tbody tr:nth-child(even) {
-    background-color: #7d0093; /* Alternating row colors */
+    background-color: #7d0093;
 }
 
 tbody tr:nth-child(odd) {
@@ -196,15 +197,15 @@ tbody tr:nth-child(odd) {
 }
 
 tbody td {
-    padding: 12px 15px; /* Padding for data cells */
+    padding: 12px 15px;
 }
 
 table, th, td {
-    border: none; /* Remove default table borders */
+    border: none;
 }
 
 tbody tr:hover {
-    filter: brightness(70%);
+    filter: brightness(85%);
 }
 
 .bodyheading {
@@ -217,3 +218,73 @@ tbody tr:hover {
 .rating-red { color: #ff0000; }   /* Red for ratings < 4 */
 .rating-yellow { color: #ffd700; } /* Yellow for ratings 4-7 */
 .rating-green { color: #00ff00; }  /* Green for ratings > 7 */
+
+.plain a {
+    text-decoration: none !important;
+    color:rgb(0, 0, 0);
+}
+
+.plain a:hover {
+    color: rgb(0, 213, 255);
+}
+
+.search-container {
+    display: flex;
+    width: 50%;
+    padding: 0.5em;
+    background-color: #7d0093;
+    box-sizing: border-box;
+    border-radius: 10px;
+    margin: 0 auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.search-bar {
+    width: 100%;
+    border: none;
+    box-sizing: border-box;
+    font-size: 30px;
+    background-color: #7d0093;
+    outline: none;
+    box-sizing: border-box;
+    margin: 0 auto;
+    border-radius: 10px;
+    flex: 2;
+}
+
+.search-bar:focus {
+    outline: none;
+}
+
+.indextable {
+    border-collapse: separate;
+    border-radius: 10px;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.search-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-radius: 0 4px 4px 0; /* Rounded corners on the right side */
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background-color: #0056b3;
+}
+
+.filter {
+    flex: 1; /* Adjust as needed */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-left: 10px; /* Add some space between filters */
+    outline: none;
+}
