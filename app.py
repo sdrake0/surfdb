@@ -98,9 +98,81 @@ def logout():
     # Redirect user to home page
     return redirect("/")
 
-@app.route('/search')
+@app.route('/search', methods=['GET'])
 def search():
-    return render_template('search.html')
+    if request.method == 'GET':
+        # Fetch search parameters from the request
+        map_name = request.args.get('map')
+        map_type = request.args.get('type')
+        map_tier = request.args.get('tier')
+        sort = request.args.get('sort')
+
+        # Build the SQL query
+        query = """
+            SELECT m.*, 
+                    AVG(r.rating) AS average_rating, 
+                    AVG(r.tier) AS usertier,
+                    CASE 
+                        WHEN LOWER(m.name) = LOWER(:name) THEN 0
+                        WHEN LOWER(m.name) LIKE LOWER(:name) || '%' THEN 1
+                        WHEN LOWER(m.name) LIKE '%' || LOWER(:name) || '%' THEN 2
+                        ELSE 3 
+                    END AS priority,
+                    INSTR(LOWER(m.name), LOWER(:name)) AS name_position
+            FROM maps m
+            LEFT JOIN ratings r ON m.map_id = r.map_id
+            WHERE 1=1
+        """
+        params = {"name": map_name if map_name else ""}
+
+        # Conditionally add parameters to the query and dictionary
+        if map_name:
+            query += " AND LOWER(m.name) LIKE LOWER(:name_like)"
+            params["name_like"] = f"%{map_name}%"
+        
+        if map_type:
+            query += " AND m.type = :type"
+            params["type"] = map_type
+        
+        if map_tier:
+            query += " AND m.tier = :tier"
+            params["tier"] = map_tier
+
+        query += " GROUP BY m.map_id"
+
+        # Add sorting based on priority and other criteria
+        if sort:
+            if sort == "hightier":
+                query += " ORDER BY priority, name_position, m.tier DESC"
+            elif sort == "lowtier":
+                query += " ORDER BY priority, name_position, m.tier ASC"
+            elif sort == "highrate":
+                query += " ORDER BY priority, name_position, average_rating DESC"
+            elif sort == "lowrate":
+                query += " ORDER BY priority, name_position, average_rating ASC"
+            else:
+                query += " ORDER BY priority, name_position, m.name"
+        else:
+            # Default sorting if no sort parameter is provided
+            query += " ORDER BY priority, name_position, m.name"
+
+        query += " LIMIT 50"
+
+        # Execute the query with only the parameters that are actually provided
+        results = db.execute(query, **params)
+        
+        return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+    else:
+        return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+
+
+@app.route("/howto")
+def howto():
+    return render_template('unavailable.html')
+
+@app.route("/request")
+def requestform():
+    return render_template('unavailable.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
