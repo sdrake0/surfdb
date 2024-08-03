@@ -22,19 +22,19 @@ db = SQL("sqlite:///surf.db")
 def home():
     # Fetch the top 10 most popular maps from the database
     popular_maps =  db.execute("""
-        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.steam, maps.bonuses, COUNT(ratings.map_id) AS rating_count
+        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses, COUNT(ratings.map_id) AS rating_count
         FROM maps
         JOIN ratings ON maps.map_id = ratings.map_id
-        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.steam, maps.bonuses
+        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses
         ORDER BY rating_count DESC
         LIMIT 10
     """)
     
     best_maps = db.execute("""
-        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.steam, maps.bonuses, AVG(ratings.rating) AS average_rating
+        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses, AVG(ratings.rating) AS average_rating
         FROM maps
         JOIN ratings ON maps.map_id = ratings.map_id
-        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.steam, maps.bonuses
+        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses
         ORDER BY average_rating DESC
         LIMIT 10
     """)
@@ -44,16 +44,38 @@ def home():
 @app.route('/map/<string:map_name>')
 def map_page(map_name):
     # Fetch the map data from the database
-    map_data = db.execute("SELECT * FROM maps WHERE name = ?", map_name)
+    map_data = db.execute("""SELECT maps.*, 
+                                COUNT(ratings.map_id) AS rating_count, 
+                                AVG(ratings.rating) AS average_rating,
+                                (SELECT surftype 
+                                    FROM ratings r 
+                                    WHERE r.map_id = maps.map_id 
+                                    GROUP BY surftype 
+                                    ORDER BY COUNT(surftype) DESC 
+                                    LIMIT 1) AS surftype
+                            FROM maps 
+                            LEFT JOIN ratings ON maps.map_id = ratings.map_id 
+                            WHERE maps.name = ?
+                            GROUP BY maps.map_id
+                            """, map_name)
     
     # Check if the map exists
     if not map_data:
-        abort(404)
+        return render_template('nomap.html')
     
-    # Get the first (and presumably only) result
+    # Get the only result
     map_data = map_data[0]
+
+    loggedin = False
+
+    if 'userid' in session:
+        user_ratings = db.execute("SELECT * FROM ratings WHERE map_id =? AND userid =?", map_data['map_id'], session['userid'])
+        user_data = user_ratings[0] if user_ratings else None
+        loggedin = True
+    else:
+        user_data = None
     
-    return render_template('map.html', map=map_data)
+    return render_template('map.html', map_data=map_data, user_data=user_data, loggedin=loggedin)
 
 @app.route('/go-to-map', methods=['POST'])
 def go_to_map():
@@ -172,6 +194,10 @@ def howto():
 
 @app.route("/request")
 def requestform():
+    return render_template('unavailable.html')
+
+@app.route("/profile")
+def profile():
     return render_template('unavailable.html')
 
 if __name__ == '__main__':

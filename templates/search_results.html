@@ -57,6 +57,11 @@
                                 {% if result.usertier == none %}
                                     <td>N/A</td>
                                 {% else %}
+                                    <td>{{ result.usertier|round(1) }}</td>
+                                {% endif %}
+                                {% if result.average_rating == none %}
+                                    <td>- / 10</td>
+                                {% else %}
                                     {% if result.average_rating|round(2) < 4 %}
                                         {% set class_name = 'rating-red' %}
                                     {% elif 4 <= result.average_rating|round(2) <= 7 %}
@@ -64,12 +69,7 @@
                                     {% else %}
                                         {% set class_name = 'rating-green' %}
                                     {% endif %}
-                                    <td>{{ result.usertier }}</td>
-                                {% endif %}
-                                {% if result.average_rating == none %}
-                                    <td>- / 10</td>
-                                {% else %}
-                                    <td class="{{ class_name }}">{{ result.average_rating }} / 10</td>
+                                    <td class="{{ class_name }}">{{ result.average_rating|round(1) }} / 10</td>
                                 {% endif %}
                             </tr>
                         {% endfor %}
@@ -111,7 +111,18 @@
                 <p class="mapinfo">Type: {{ first_row.type }}</p>
                 <p class="mapinfo">Tier: {{ first_row.tier }}</p>
                 <p class="mapinfo">User Tier: {{ first_row.usertier }}</p>
-                <p class="mapinfo">Average Rating: {{ first_row.average_rating }}</p>
+                {% if first_row.average_rating == none %}
+                    <p class="mapinfo">Average Rating: - / 10</p>
+                {% else %}
+                    {% if first_row.average_rating|round(2) < 4 %}
+                        {% set class_name = 'mapinfo-red' %}
+                    {% elif 4 <= first_row.average_rating|round(2) <= 7 %}
+                        {% set class_name = 'mapinfo-yellow' %}
+                    {% else %}
+                        {% set class_name = 'mapinfo-green' %}
+                    {% endif %}
+                    <p class="mapinfo">Average Rating: <span class="{{ class_name }}">{{ first_row.average_rating|round(1) }} / 10</span></p>
+                {% endif %}
             {% else %}
                 <p>No results found.</p>
             {% endif %}

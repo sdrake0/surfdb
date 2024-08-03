@@ -2,7 +2,110 @@
 
 {% block main %}
 
-<h1>{{ map.name }}</h1>
-<p>{{ map.tier }}</p>
+<div>
+    <div class="container3">
+        <div class="results2">
+            <h2 class="mapname">{{ map_data.name }}</h2>
+            <p class="mapinfo">Mapper: {{ map_data.mapper }}</p>
+            <p class="mapinfo">Map Type: {{ map_data.type }}</p>
+            <p class="mapinfo">Stages: {{ map_data.stages }}</p>
+            <p class="mapinfo">Tier: {{ map_data.tier }}</p>
+            {% if map_data.get('usertier') == none %}
+                <p class="mapinfo">User Tier: -</p>
+            {% else %}
+                <p class="mapinfo">User Tier: {{ map_data.usertier|float|round(1) }}</p>
+            {% endif %}
+            {% if map_data.average_rating == none %}
+                <p class="mapinfo">Average Rating: - / 10</p>
+            {% else %}
+                {% if map_data.average_rating|round(2) < 4 %}
+                    {% set class_name = 'mapinfo-red' %}
+                {% elif 4 <= map_data.average_rating|round(2) <= 7 %}
+                    {% set class_name = 'mapinfo-yellow' %}
+                {% else %}
+                    {% set class_name = 'mapinfo-green' %}
+                {% endif %}
+                <p class="mapinfo">Average Rating: <span class="{{ class_name }}">{{ map_data.average_rating|round(1) }} / 10</span></p>
+            {% endif %}
+            <p class="mapinfo">Surf Type: {{ map_data.surftype }}</p>
+            <p class="mapinfo">Bonuses: {{ map_data.bonuses }}</p>
+        </div>
+        <div class="rate">
+            {% if loggedin == true %}
+                <h2 class="rateheading">Rate this map</h2>
+                <form>
+                    <div>
+                        <label class="ratemargin" for="rating">Rating:</label>
+                        <input class="rateform" type="number" id="rating" name="rating" min="0" max="10" step="0.1"> / 10
+                    </div>
+                    
+                    <div>
+                        <label class="ratemargin" for="tier">Tier:</label>
+                        <input class="rateform" type="number" id="tier" name="tier" min="1" max="8.9" step="0.1">
+                    </div>
+                    
+                    <div>
+                        <label class="ratemargin" for="type">Surf type:</label>
+                        <select class="rateform" id="type" name="type">
+                        <option value="" disabled selected>Select</option>
+                        <option value="Unit">Unit</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Maxvel">Maxvel</option>
+                        <option value="Combo">Combo</option>
+                        <option value="None">None</option>
+                        </select>
+                    </div>
+                    
+                    <button class="ratesubmit" type="submit">Save</button>
+                </form>
+            {% else %}
+                <h2>Log in to rate maps</h2>
+            {% endif %}
+            {% if user_data is not none %}
+                <h2 class="rateheading2">Your ratings:</h2>
+                {% if user_data.rating == none %}
+                    <p>Rating: - / 10</p>
+                {% else %}
+                    {% if user_data.rating < 4 %}
+                        {% set class_name = 'mapinfo-red' %}
+                    {% elif 4 <= user_data.rating <= 7 %}
+                        {% set class_name = 'mapinfo-yellow' %}
+                    {% else %}
+                        {% set class_name = 'mapinfo-green' %}
+                    {% endif %}
+                    <p class="ratemargin">Rating: <span class="{{ class_name }}">{{ user_data.rating }} / 10</span></p>
+                {% endif %}
+                <p class="ratemargin">Tier: {{ user_data.tier }}</p>
+                <p class="ratemargin">Surf Type: {{ user_data.surftype }}</p>
+            {% endif %}
+        </div>
+        <div class="mapvid">
+            <div class="video-container2">
+                <div class="video-placeholder" id="video-placeholder">No video found</div>
+                <iframe id="youtube-video" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        
+            <script>
+                // YouTube video URL
+                var ytUrl = "{{ map_data.youtube }}"; // Replace with an empty string or invalid URL to test the placeholder
+        
+                // Convert the URL to embed format
+                var embedUrl = ytUrl.replace('/watch?v=', '/embed/');
+        
+                // Get the iframe and placeholder elements
+                var iframe = document.getElementById('youtube-video');
+                var placeholder = document.getElementById('video-placeholder');
+        
+                // Set the iframe src attribute and manage visibility
+                if (ytUrl) {
+                    iframe.src = embedUrl;
+                    placeholder.style.display = 'none'; // Hide placeholder if URL is provided
+                } else {
+                    iframe.style.display = 'none'; // Hide iframe if no URL is provided
+                }
+            </script> 
+        </div>
+    </div>
+</div>
 
 {% endblock %}
