@@ -414,6 +414,8 @@ iframe {
     color: #ffffff;
     padding: 10px;
     margin-left: 10%;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .mapinfo-red { 

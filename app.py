@@ -20,7 +20,7 @@ db = SQL("sqlite:///surf.db")
 
 @app.route('/')
 def home():
-    # Fetch the top 10 most popular maps from the database
+    # Fetch the top 10 most popular maps and highest rated maps from the database
     popular_maps =  db.execute("""
         SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses, COUNT(ratings.map_id) AS rating_count
         FROM maps
@@ -41,12 +41,13 @@ def home():
 
     return render_template('index.html', popular_maps=popular_maps, best_maps=best_maps)
 
-@app.route('/map/<string:map_name>')
+@app.route('/map/<string:map_name>', methods=['GET', 'POST'])
 def map_page(map_name):
-    # Fetch the map data from the database
+    # Fetch the map data from the database - Used ChatGPT to generate part of this SQL query
     map_data = db.execute("""SELECT maps.*, 
                                 COUNT(ratings.map_id) AS rating_count, 
                                 AVG(ratings.rating) AS average_rating,
+                                AVG(ratings.tier) AS usertier,
                                 (SELECT surftype 
                                     FROM ratings r 
                                     WHERE r.map_id = maps.map_id 
@@ -68,6 +69,8 @@ def map_page(map_name):
 
     loggedin = False
 
+    types = ['Unit', 'Tech', 'Maxvel', 'Combo', 'Other']
+    # Note user logged in if in session
     if 'userid' in session:
         user_ratings = db.execute("SELECT * FROM ratings WHERE map_id =? AND userid =?", map_data['map_id'], session['userid'])
         user_data = user_ratings[0] if user_ratings else None
@@ -75,6 +78,36 @@ def map_page(map_name):
     else:
         user_data = None
     
+    if request.method == 'POST':
+        # Get the user's rating, tier, and type from the form or request data
+        if request.form.get('rating'):
+            userrating = float(request.form.get('rating'))
+        else:
+            userrating = 0
+        
+        if request.form.get('tier'):
+            usertier = float(request.form.get('tier'))
+        else:
+            usertier = 0
+
+        usertype = request.form.get('type')
+
+        # Check if the user has already rated the map, then update or insert a new rating
+        if loggedin:
+            previous_rating = db.execute("SELECT userid FROM ratings WHERE map_id = ? AND userid = ?", map_data['map_id'], session['userid'])
+
+            if not previous_rating:
+                db.execute("INSERT INTO ratings (map_id, userid) VALUES (?, ?)", map_data['map_id'], session['userid'])
+            
+            if 1 <= userrating <= 10:
+                db.execute("UPDATE ratings SET rating = ? WHERE map_id = ? AND userid = ?", userrating, map_data['map_id'], session['userid'])
+            if 1 <= usertier < 9:
+                db.execute("UPDATE ratings SET tier = ? WHERE map_id = ? AND userid = ?", usertier, map_data['map_id'], session['userid'])
+            if usertype in types:
+                db.execute("UPDATE ratings SET surftype =? WHERE map_id =? AND userid =?", usertype, map_data['map_id'], session['userid'])
+        
+        return redirect(url_for('map_page', map_name=map_data['name']))
+
     return render_template('map.html', map_data=map_data, user_data=user_data, loggedin=loggedin)
 
 @app.route('/go-to-map', methods=['POST'])
@@ -129,7 +162,7 @@ def search():
         map_tier = request.args.get('tier')
         sort = request.args.get('sort')
 
-        # Build the SQL query
+        # Build the SQL query - used ChatGPT to generate this SQL query
         query = """
             SELECT m.*, 
                     AVG(r.rating) AS average_rating, 
@@ -190,15 +223,16 @@ def search():
 
 @app.route("/howto")
 def howto():
-    return render_template('unavailable.html')
+    return render_template('howto.html')
 
-@app.route("/request")
+@app.route("/request", methods=['GET', 'POST'])
 def requestform():
-    return render_template('unavailable.html')
+    return render_template('requestform.html')
 
 @app.route("/profile")
 def profile():
-    return render_template('unavailable.html')
+
+    return render_template('profile.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
