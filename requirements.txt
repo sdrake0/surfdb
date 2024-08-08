@@ -8,7 +8,7 @@ click==8.1.7
 colorama==0.4.4
 cryptography==3.4.8
 cs50==9.3.4
-Cython<3
+Cython>=0.29.24
 Flask==3.0.3
 Flask-Session==0.8.0
 google-auth==2.32.0
@@ -30,7 +30,7 @@ pyasn1_modules==0.4.0
 pyOpenSSL==21.0.0
 pyparsing==2.4.7
 pytz==2022.1
-PyYAML==5.4.1
+PyYAML==6.0
 requests==2.32.3
 requests-oauthlib==2.0.0
 rsa==4.9
