@@ -256,13 +256,13 @@ def editprofile():
         if request.form.get('age').isdigit():
             age = int(request.form.get('age'))
             db.execute("UPDATE profile SET age = ? WHERE user_id = ?", age, session['userid'])
-            
+
         if request.form.get('gender').isdigit():
             if 0 <= int(request.form.get('gender')) <= 100:
                 gender = int(request.form.get('gender'))
                 db.execute("UPDATE profile SET gender = ? WHERE user_id = ?", gender, session['userid'])
         
-        return redirect(url_for('profile'))
+        return redirect('/profile')
     
     user_profile = db.execute("SELECT * FROM profile WHERE user_id =?", session['userid'])[0]
 
