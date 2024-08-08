@@ -585,4 +585,13 @@ iframe {
     transition: opacity .2s;
     pointer-events: none; /* Prevent interaction */
   }
+
+  .paragraph.largeprofile {
+    font-size: 20px;
+    line-height: 1.5em;
+    font-family: 'Abel', sans-serif;
+    display: flex; /* Use flexbox for alignment */
+    align-items: center; /* Vertically center items */
+    gap: 10px; /* Optional: Add space between items */
+}
   
