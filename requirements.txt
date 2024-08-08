@@ -8,6 +8,7 @@ click==8.1.7
 colorama==0.4.4
 cryptography==3.4.8
 cs50==9.3.4
+Cython<3
 Flask==3.0.3
 Flask-Session==0.8.0
 google-auth==2.32.0
