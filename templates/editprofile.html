@@ -9,15 +9,18 @@
                 <div class="text-box _500px">
                     <h1 class="heading h1">{{ user_profile.username }}</h1>
                     <p class="paragraph large">Age: {{ user_profile.age }}</p>
-                    {% if user_profile.gender not none %}
-                        <div class="slidecontainer">
-                            Man
-                            <input type="range" min="1" max="100" value="{{ user_profile.gender }}" class="lockedslider" id="myRange">
-                            Woman
-                        </div>
-                    {% endif %}
+                    <div class="slidecontainer">
+                        {% if user_profile.gender not none %}
+                            {% set gendervalue = user_profile.gender %}
+                        {% else %}
+                            {% set gendervalue = 50 %}
+                        {% endif %}
+                        Man
+                        <input type="range" min="1" max="100" value="{{ gendervalue }}" class="slider" id="myRange">
+                        Woman
+                    </div>
                     <div class="spacer _16"></div>
-                    <a href="/editprofile" class="button w-button">Edit Profile</a>
+                    <a href="/editprofile" class="button w-button">Save Profile</a>
                 </div>
             </div>
         </div>
@@ -37,7 +40,7 @@
                 </thead>
                 <tbody>
                     {% for map in favoritemaps %}
-                        {% iffavoritemaps.rating < 4 %}
+                        {% if favoritemaps.rating < 4 %}
                             {% set class_name = 'rating-red' %}
                         {% elif 4 <= favoritemaps.rating <= 7 %}
                             {% set class_name = 'rating-yellow' %}

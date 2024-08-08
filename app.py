@@ -231,8 +231,42 @@ def requestform():
 
 @app.route("/profile")
 def profile():
+    if 'userid' not in session:
+        return redirect('/')
+    
+    if session['userid'] not in db.execute("SELECT user_id FROM profile"):
+        db.execute("INSERT INTO profile (user_id) VALUES (?)", session['userid'])
+    
+    user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
 
-    return render_template('profile.html')
+    favoritemaps = db.execute("SELECT name, rating FROM ratings JOIN maps ON maps.map_id = ratings.map_id WHERE userid = ? ORDER BY rating DESC LIMIT 10", session['userid'])
+
+    return render_template('profile.html', user_profile=user_profile, favoritemaps=favoritemaps)
+
+@app.route("/editprofile", methods=['GET', 'POST'])
+def editprofile():
+    if 'userid' not in session:
+        return redirect('/')
+    
+    if request.method == 'POST':
+        if request.form.get('username'):
+            username = request.form.get('username')
+            db.execute("UPDATE profile SET username = ? WHERE user_id = ?", username, session['userid'])
+
+        if request.form.get('age').isdigit():
+            age = int(request.form.get('age'))
+            db.execute("UPDATE profile SET age = ? WHERE user_id = ?", age, session['userid'])
+            
+        if request.form.get('gender').isdigit():
+            if 0 <= int(request.form.get('gender')) <= 100:
+                gender = int(request.form.get('gender'))
+                db.execute("UPDATE profile SET gender = ? WHERE user_id = ?", gender, session['userid'])
+        
+        return redirect(url_for('profile'))
+    
+    user_profile = db.execute("SELECT * FROM profile WHERE user_id =?", session['userid'])[0]
+
+    return render_template('editprofile.html', user_profile=user_profile)
 
 if __name__ == '__main__':
     app.run(debug=True)
