@@ -264,9 +264,12 @@ def editprofile():
         
         return redirect('/profile')
     
-    user_profile = db.execute("SELECT * FROM profile WHERE user_id =?", session['userid'])[0]
+    user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
 
-    return render_template('editprofile.html', user_profile=user_profile)
+    if db.execute("SELECT rating FROM ratings WHERE userid = ?", session['userid']):
+        totalratings = int(db.execute("SELECT COUNT(rating) FROM ratings WHERE userid = ?", (session['userid'],))[0]['COUNT(rating)'])
+
+    return render_template('editprofile.html', user_profile=user_profile, totalratings=totalratings)
 
 if __name__ == '__main__':
     app.run(debug=True)

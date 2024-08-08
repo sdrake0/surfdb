@@ -11,11 +11,12 @@
                     <p class="paragraph large">Age: {{ user_profile.age }}</p>
                     {% if user_profile.gender %}
                         <div class="slidecontainer">
-                            Man
+                            <p class="paragraph largeprofile">Man
                             <input type="range" min="1" max="100" value="{{ user_profile.gender }}" class="lockedslider" id="myRange">
-                            Woman
+                            Woman</p>
                         </div>
                     {% endif %}
+                    <p class="paragraph large">Maps rated: {{ totalratings }}</p>
                     <div class="spacer _16"></div>
                     <a href="/editprofile" class="button w-button">Edit Profile</a>
                 </div>
