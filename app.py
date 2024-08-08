@@ -241,7 +241,10 @@ def profile():
 
     favoritemaps = db.execute("SELECT name, rating FROM ratings JOIN maps ON maps.map_id = ratings.map_id WHERE userid = ? ORDER BY rating DESC LIMIT 10", session['userid'])
 
-    return render_template('profile.html', user_profile=user_profile, favoritemaps=favoritemaps)
+    if db.execute("SELECT rating FROM ratings WHERE userid = ?", session['userid']):
+        totalratings = int(db.execute("SELECT COUNT(rating) FROM ratings WHERE userid = ?", (session['userid'],))[0]['COUNT(rating)'])
+
+    return render_template('profile.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
 
 @app.route("/editprofile", methods=['GET', 'POST'])
 def editprofile():
@@ -265,9 +268,6 @@ def editprofile():
         return redirect('/profile')
     
     user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
-
-    if db.execute("SELECT rating FROM ratings WHERE userid = ?", session['userid']):
-        totalratings = int(db.execute("SELECT COUNT(rating) FROM ratings WHERE userid = ?", (session['userid'],))[0]['COUNT(rating)'])
 
     return render_template('editprofile.html', user_profile=user_profile, totalratings=totalratings)
 

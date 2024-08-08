@@ -549,6 +549,7 @@ iframe {
     opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
     -webkit-transition: .2s; /* 0.2 seconds transition on hover */
     transition: opacity .2s;
+    border-radius: 10px;
   }
   
   /* Mouse-over effects */
@@ -584,6 +585,7 @@ iframe {
     -webkit-transition: .2s; /* 0.2 seconds transition on hover */
     transition: opacity .2s;
     pointer-events: none; /* Prevent interaction */
+    border-radius: 10px;
   }
 
   .paragraph.largeprofile {
