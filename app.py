@@ -269,7 +269,7 @@ def editprofile():
     
     user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
 
-    return render_template('editprofile.html', user_profile=user_profile, totalratings=totalratings)
+    return render_template('editprofile.html', user_profile=user_profile)
 
 if __name__ == '__main__':
     app.run(debug=True)
