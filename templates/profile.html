@@ -37,17 +37,19 @@
                 </thead>
                 <tbody>
                     {% for map in favoritemaps %}
-                        {% if favoritemaps.rating < 4 %}
-                            {% set class_name = 'rating-red' %}
-                        {% elif 4 <= favoritemaps.rating <= 7 %}
-                            {% set class_name = 'rating-yellow' %}
-                        {% else %}
-                            {% set class_name = 'rating-green' %}
+                        {% if favoritemaps.rating %}
+                            {% if favoritemaps.rating < 4 %}
+                                {% set class_name = 'rating-red' %}
+                            {% elif 4 <= favoritemaps.rating <= 7 %}
+                                {% set class_name = 'rating-yellow' %}
+                            {% else %}
+                                {% set class_name = 'rating-green' %}
+                            {% endif %}
+                            <tr>
+                                <td class="plain"><a href="{{ url_for('map_page', map_name=favoritemaps.name) }}">{{ favoritemaps.name }}</a></td>
+                                <td class="{{ class_name }}">{{ favoritemaps.rating }}</td>
+                            </tr>
                         {% endif %}
-                        <tr>
-                            <td class="plain"><a href="{{ url_for('map_page', map_name=favoritemaps.name) }}">{{ favoritemaps.name }}</a></td>
-                            <td class="{{ class_name }}">{{ favoritemaps.rating }}</td>
-                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
