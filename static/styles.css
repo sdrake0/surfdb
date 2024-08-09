@@ -1,15 +1,16 @@
 body {
     margin: 0;
     font-family: 'Abel', sans-serif;
-    background-color: #5c006c;
+    background-color: #341f6e;
     overflow-x: hidden;
+    color: white;
 }
 
 .navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #b000cf;
+    background-color: #5e3dcb;
     padding: 10px 20px;
     overflow: hidden;
     height: 40px;
@@ -39,19 +40,19 @@ body {
 }
 
 .navbar-menu li a {
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     font-weight: bold;
     font-family: 'Abel', sans-serif;
     font-size: 20px;
     text-decoration: none;
     padding: 10px 20px;
     display: block;
-    background-color: #b000cf;
+    background-color: #513cca;
     border-radius: 10px;
 }
 
 .navbar-menu li a:hover {
-    background-color: #9000a9;
+    background-color: #4a2ba7;
     border-radius: 5px;
 }
 
@@ -59,7 +60,7 @@ body {
     width: 100%;
     min-height: 50vh;
     position: relative;
-    background-color: #7d0093;
+    background-color: #422e94;
 }
 
 .section {
@@ -184,18 +185,18 @@ table {
 }
 
 thead th {
-    background-color: #b000cf; 
+    background-color: #6a3ad1; 
     color: #333; 
     padding: 12px 15px; 
     text-align: center; 
 }
 
 tbody tr:nth-child(even) {
-    background-color: #7d0093;
+    background-color: #462f92;
 }
 
 tbody tr:nth-child(odd) {
-    background-color: #9000a9;
+    background-color: #4c30a9;
 }
 
 tbody td {
@@ -244,7 +245,7 @@ tbody tr:hover {
 
 .plain a {
     text-decoration: none !important;
-    color:rgb(0, 0, 0);
+    color:rgb(255, 255, 255);
 }
 
 .plain a:hover {
@@ -263,7 +264,7 @@ tbody tr:hover {
 .search-container {
     display: flex;
     padding: 0.5em;
-    background-color: #7d0093;
+    background-color: #4c3093;
     box-sizing: border-box;
     border-radius: 10px;
     margin-right: 10px;
@@ -276,7 +277,7 @@ tbody tr:hover {
     width: 100%;
     border: none;
     font-size: 30px;
-    background-color: #7d0093;
+    background-color: #4b2892;
     outline: none;
     border-radius: 10px;
     flex: 2;
@@ -291,7 +292,7 @@ tbody tr:hover {
     flex: 1;
     padding: 10px;
     font-size: 16px;
-    background-color: #d150e7;
+    background-color: #9766e5;
     border-radius: 4px;
     margin: 0 10px;
     outline: none;
@@ -304,7 +305,7 @@ tbody tr:hover {
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: #007BFF;
+    background-color: #00b3ff;
     color: white;
     cursor: pointer;
     flex-shrink: 0;
@@ -329,14 +330,14 @@ tbody tr:hover {
 }
 
 .styled-table thead th {
-    background-color: #e873fd;
+    background-color: #a373fd;
     color: #333; 
     padding: 12px 15px; 
     border-radius: 10px; 
 }
 
 .styled-table tbody tr {
-    background-color: #bf37d7; 
+    background-color: #6237d7; 
     border-radius: 10px !important;
 }
 
@@ -406,7 +407,7 @@ iframe {
 }
 
 .mapinfo {
-    background-color: #bf37d7;
+    background-color: #6a37d7;
     display: block;
     border-radius: 10px;
     width: fit-content;
@@ -469,7 +470,7 @@ iframe {
 }
 
 .rate {
-    background-color: #bf37d7;
+    background-color: #6437d7;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -494,7 +495,7 @@ iframe {
 
 .rateform {
     font-family: 'Abel', sans-serif;
-    background-color: #b000cf;
+    background-color: #6a3fcd;
     color: white;
     border-color: white;
     height: fit-content;
@@ -504,7 +505,7 @@ iframe {
 
 .ratesubmit {
     font-family: 'Abel', sans-serif;
-    background-color: #b000cf;
+    background-color: #593ecf;
     color: white;
     border-color: white;
     height: fit-content;

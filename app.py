@@ -1,114 +1,131 @@
+import os
 from flask import Flask, render_template, url_for, request, jsonify, session, redirect, abort
 from flask_session import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from cs50 import SQL
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from db import db  # Import `db` from `db.py`
+from models import Map, Rating, User, Profile
 
-#configure application
+# Configure application
 app = Flask(__name__, static_folder='static')
 CLIENT_ID = '370465136464-d21p30j6pjg46adpmfqc50qjs7h30mvi.apps.googleusercontent.com'
-
 
 # Configure session to use filesystem for storing session data
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+# Configure SQLAlchemy to use PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('postgres://u7cu09fjkpg1qb:p780e9b4cd28b981a8bb95b57d8670c6007d977ec1f5e239e318ea8335bc76e70@c9uss87s9bdb8n.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d6egq4keh844gb')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///surf.db")
+# Initialize the database and migration objects
+db.init_app(app)  # Initialize `db` with the app
+migrate = Migrate(app, db)
 
 @app.route('/')
 def home():
-    # Fetch the top 10 most popular maps and highest rated maps from the database
-    popular_maps =  db.execute("""
-        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses, COUNT(ratings.map_id) AS rating_count
-        FROM maps
-        JOIN ratings ON maps.map_id = ratings.map_id
-        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses
-        ORDER BY rating_count DESC
-        LIMIT 10
-    """)
+    # Fetch the top 10 most popular maps based on rating count
+    popular_maps = db.session.query(
+        Map.map_id, Map.name, Map.tier, Map.type, Map.mapper, Map.youtube, Map.stages, Map.bonuses,
+        db.func.count(Rating.map_id).label('rating_count')
+    ).join(Rating).group_by(
+        Map.map_id, Map.name, Map.tier, Map.type, Map.mapper, Map.youtube, Map.stages, Map.bonuses
+    ).order_by(
+        db.func.count(Rating.map_id).desc()
+    ).limit(10).all()
     
-    best_maps = db.execute("""
-        SELECT maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses, AVG(ratings.rating) AS average_rating
-        FROM maps
-        JOIN ratings ON maps.map_id = ratings.map_id
-        GROUP BY maps.map_id, maps.name, maps.tier, maps.type, maps.mapper, maps.youtube, maps.stages, maps.bonuses
-        ORDER BY average_rating DESC
-        LIMIT 10
-    """)
+    # Fetch the top 10 best-rated maps based on average rating
+    best_maps = db.session.query(
+        Map.map_id, Map.name, Map.tier, Map.type, Map.mapper, Map.youtube, Map.stages, Map.bonuses,
+        db.func.avg(Rating.rating).label('average_rating')
+    ).join(Rating).group_by(
+        Map.map_id, Map.name, Map.tier, Map.type, Map.mapper, Map.youtube, Map.stages, Map.bonuses
+    ).order_by(
+        db.func.avg(Rating.rating).desc()
+    ).limit(10).all()
 
     return render_template('index.html', popular_maps=popular_maps, best_maps=best_maps)
 
 @app.route('/map/<string:map_name>', methods=['GET', 'POST'])
 def map_page(map_name):
-    # Fetch the map data from the database - Used ChatGPT to generate part of this SQL query
-    map_data = db.execute("""SELECT maps.*, 
-                                COUNT(ratings.map_id) AS rating_count, 
-                                AVG(ratings.rating) AS average_rating,
-                                AVG(ratings.tier) AS usertier,
-                                (SELECT surftype 
-                                    FROM ratings r 
-                                    WHERE r.map_id = maps.map_id 
-                                    GROUP BY surftype 
-                                    ORDER BY COUNT(surftype) DESC 
-                                    LIMIT 1) AS surftype
-                            FROM maps 
-                            LEFT JOIN ratings ON maps.map_id = ratings.map_id 
-                            WHERE maps.name = ?
-                            GROUP BY maps.map_id
-                            """, map_name)
-    
+    # Fetch the map data from the database
+    map_data = db.session.query(
+        Map,
+        db.func.count(Rating.map_id).label('rating_count'),
+        db.func.avg(Rating.rating).label('average_rating'),
+        db.func.avg(Rating.tier).label('usertier'),
+        db.func.coalesce(
+            db.func.subquery(
+                db.session.query(Rating.surftype)
+                .filter(Rating.map_id == Map.map_id)
+                .group_by(Rating.surftype)
+                .order_by(db.func.count(Rating.surftype).desc())
+                .limit(1)
+            ),
+            'Unknown'
+        ).label('surftype')
+    ).outerjoin(Rating, Map.map_id == Rating.map_id).filter(Map.name == map_name).group_by(Map.map_id).first()
+
     # Check if the map exists
     if not map_data:
         return render_template('nomap.html')
-    
-    # Get the only result
-    map_data = map_data[0]
+
+    # Convert the map_data tuple to a dictionary-like object
+    map_data_dict = {
+        'map_id': map_data[0].map_id,
+        'name': map_data[0].name,
+        'tier': map_data[0].tier,
+        'type': map_data[0].type,
+        'mapper': map_data[0].mapper,
+        'youtube': map_data[0].youtube,
+        'stages': map_data[0].stages,
+        'bonuses': map_data[0].bonuses,
+        'rating_count': map_data.rating_count,
+        'average_rating': map_data.average_rating,
+        'usertier': map_data.usertier,
+        'surftype': map_data.surftype
+    }
 
     loggedin = False
 
     types = ['Unit', 'Tech', 'Maxvel', 'Combo', 'Other']
     # Note user logged in if in session
     if 'userid' in session:
-        user_ratings = db.execute("SELECT * FROM ratings WHERE map_id =? AND userid =?", map_data['map_id'], session['userid'])
-        user_data = user_ratings[0] if user_ratings else None
+        user_ratings = Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).first()
+        user_data = user_ratings if user_ratings else None
         loggedin = True
     else:
         user_data = None
-    
+
     if request.method == 'POST':
         # Get the user's rating, tier, and type from the form or request data
-        if request.form.get('rating'):
-            userrating = float(request.form.get('rating'))
-        else:
-            userrating = 0
-        
-        if request.form.get('tier'):
-            usertier = float(request.form.get('tier'))
-        else:
-            usertier = 0
-
+        userrating = float(request.form.get('rating', 0))
+        usertier = float(request.form.get('tier', 0))
         usertype = request.form.get('type')
 
-        # Check if the user has already rated the map, then update or insert a new rating
+        # Check if the user has already rated the map
         if loggedin:
-            previous_rating = db.execute("SELECT userid FROM ratings WHERE map_id = ? AND userid = ?", map_data['map_id'], session['userid'])
+            previous_rating = Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).first()
 
             if not previous_rating:
-                db.execute("INSERT INTO ratings (map_id, userid) VALUES (?, ?)", map_data['map_id'], session['userid'])
+                new_rating = Rating(map_id=map_data_dict['map_id'], userid=session['userid'])
+                db.session.add(new_rating)
             
             if 1 <= userrating <= 10:
-                db.execute("UPDATE ratings SET rating = ? WHERE map_id = ? AND userid = ?", userrating, map_data['map_id'], session['userid'])
+                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'rating': userrating})
             if 1 <= usertier < 9:
-                db.execute("UPDATE ratings SET tier = ? WHERE map_id = ? AND userid = ?", usertier, map_data['map_id'], session['userid'])
+                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'tier': usertier})
             if usertype in types:
-                db.execute("UPDATE ratings SET surftype =? WHERE map_id =? AND userid =?", usertype, map_data['map_id'], session['userid'])
-        
-        return redirect(url_for('map_page', map_name=map_data['name']))
+                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'surftype': usertype})
 
-    return render_template('map.html', map_data=map_data, user_data=user_data, loggedin=loggedin)
+            db.session.commit()
+        
+        return redirect(url_for('map_page', map_name=map_data_dict['name']))
+
+    return render_template('map.html', map_data=map_data_dict, user_data=user_data, loggedin=loggedin)
 
 @app.route('/go-to-map', methods=['POST'])
 def go_to_map():
@@ -123,25 +140,31 @@ def tokensignin():
     session.clear()
     token = request.json.get('id_token')
     try:
+        # Verify the token
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
 
-        # ID token is valid. Get the user's Google Account ID from the decoded token.
+        # Extract user info from the token
         googleid = idinfo['sub']
         email = idinfo['email']
         name = idinfo['name']
 
-        rows = db.execute("SELECT * FROM users WHERE email = ?", email)
+        # Query the database for the user
+        user = User.query.filter_by(email=email).first()
 
-        if not rows:
-            db.execute("INSERT INTO users (googleid, email, name) VALUES (?, ?, ?)", googleid, email, name)
-            rows = db.execute("SELECT * FROM users WHERE email = ?", email)
-        
-        session['userid'] = rows[0]['id']
+        if not user:
+            # Insert new user if not found
+            user = User(googleid=googleid, email=email, name=name)
+            db.session.add(user)
+            db.session.commit()
+
+        # Store the user ID in the session
+        session['userid'] = user.id
 
         return jsonify({'message': 'User authenticated'})
     except ValueError:
         # Invalid token
         return jsonify({'message': 'Invalid token'}), 400
+
 
 @app.route("/logout")
 def logout():
@@ -155,70 +178,58 @@ def logout():
 
 @app.route('/search', methods=['GET'])
 def search():
-    if request.method == 'GET':
-        # Fetch search parameters from the request
-        map_name = request.args.get('map')
-        map_type = request.args.get('type')
-        map_tier = request.args.get('tier')
-        sort = request.args.get('sort')
+    map_name = request.args.get('map')
+    map_type = request.args.get('type')
+    map_tier = request.args.get('tier')
+    sort = request.args.get('sort')
 
-        # Build the SQL query - used ChatGPT to generate this SQL query
-        query = """
-            SELECT m.*, 
-                    AVG(r.rating) AS average_rating, 
-                    AVG(r.tier) AS usertier,
-                    CASE 
-                        WHEN LOWER(m.name) = LOWER(:name) THEN 0
-                        WHEN LOWER(m.name) LIKE LOWER(:name) || '%' THEN 1
-                        WHEN LOWER(m.name) LIKE '%' || LOWER(:name) || '%' THEN 2
-                        ELSE 3 
-                    END AS priority,
-                    INSTR(LOWER(m.name), LOWER(:name)) AS name_position
-            FROM maps m
-            LEFT JOIN ratings r ON m.map_id = r.map_id
-            WHERE 1=1
-        """
-        params = {"name": map_name if map_name else ""}
+    # Base query
+    query = db.session.query(Map).outerjoin(Rating).group_by(Map.map_id)
 
-        # Conditionally add parameters to the query and dictionary
-        if map_name:
-            query += " AND LOWER(m.name) LIKE LOWER(:name_like)"
-            params["name_like"] = f"%{map_name}%"
-        
-        if map_type:
-            query += " AND m.type = :type"
-            params["type"] = map_type
-        
-        if map_tier:
-            query += " AND m.tier = :tier"
-            params["tier"] = map_tier
+    # Filtering
+    if map_name:
+        query = query.filter(Map.name.ilike(f"%{map_name}%"))
+    if map_type:
+        query = query.filter(Map.type == map_type)
+    if map_tier:
+        query = query.filter(Map.tier == map_tier)
 
-        query += " GROUP BY m.map_id"
+    # Aggregation
+    query = query.add_columns(
+        db.func.avg(Rating.rating).label('average_rating'),
+        db.func.avg(Rating.tier).label('usertier'),
+        db.case(
+            [
+                (db.func.lower(Map.name) == db.func.lower(map_name), 0),
+                (db.func.lower(Map.name).like(db.func.lower(f"{map_name}%")), 1),
+                (db.func.lower(Map.name).like(db.func.lower(f"%{map_name}%")), 2)
+            ],
+            else_=3
+        ).label('priority'),
+        db.func.position(db.func.lower(map_name)).label('name_position')
+    )
 
-        # Add sorting based on priority and other criteria
-        if sort:
-            if sort == "hightier":
-                query += " ORDER BY priority, name_position, m.tier DESC"
-            elif sort == "lowtier":
-                query += " ORDER BY priority, name_position, m.tier ASC"
-            elif sort == "highrate":
-                query += " ORDER BY priority, name_position, average_rating DESC"
-            elif sort == "lowrate":
-                query += " ORDER BY priority, name_position, average_rating ASC"
-            else:
-                query += " ORDER BY priority, name_position, m.name"
+    # Sorting
+    if sort:
+        if sort == "hightier":
+            query = query.order_by('priority', 'name_position', Map.tier.desc())
+        elif sort == "lowtier":
+            query = query.order_by('priority', 'name_position', Map.tier.asc())
+        elif sort == "highrate":
+            query = query.order_by('priority', 'name_position', 'average_rating.desc()')
+        elif sort == "lowrate":
+            query = query.order_by('priority', 'name_position', 'average_rating.asc()')
         else:
-            # Default sorting if no sort parameter is provided
-            query += " ORDER BY priority, name_position, m.name"
-
-        query += " LIMIT 50"
-
-        # Execute the query with only the parameters that are actually provided
-        results = db.execute(query, **params)
-        
-        return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+            query = query.order_by('priority', 'name_position', Map.name)
     else:
-        return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+        query = query.order_by('priority', 'name_position', Map.name)
+
+    query = query.limit(50)
+
+    results = query.all()
+
+    return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+
 
 
 @app.route("/howto")
@@ -234,15 +245,32 @@ def profile():
     if 'userid' not in session:
         return redirect('/')
     
-    if session['userid'] not in db.execute("SELECT user_id FROM profile"):
-        db.execute("INSERT INTO profile (user_id) VALUES (?)", session['userid'])
+    user_id = session['userid']
     
-    user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
+    # Check if the user has a profile entry
+    profile_entry = Profile.query.get(user_id)
+    
+    if not profile_entry:
+        new_profile = Profile(user_id=user_id)
+        db.session.add(new_profile)
+        db.session.commit()
 
-    favoritemaps = db.execute("SELECT name, rating FROM ratings JOIN maps ON maps.map_id = ratings.map_id WHERE userid = ? ORDER BY rating DESC LIMIT 10", session['userid'])
+    # Fetch user profile data
+    user_profile = Profile.query.get(user_id)
 
-    if db.execute("SELECT rating FROM ratings WHERE userid = ?", session['userid']):
-        totalratings = int(db.execute("SELECT COUNT(rating) FROM ratings WHERE userid = ?", (session['userid'],))[0]['COUNT(rating)'])
+    # Fetch favorite maps
+    favoritemaps = db.session.query(Map.name, db.func.avg(Rating.rating).label('rating')) \
+        .join(Rating, Map.map_id == Rating.map_id) \
+        .filter(Rating.userid == user_id) \
+        .group_by(Map.map_id) \
+        .order_by(db.func.avg(Rating.rating).desc()) \
+        .limit(10) \
+        .all()
+
+    # Fetch total ratings count
+    totalratings = db.session.query(db.func.count(Rating.rating)) \
+        .filter(Rating.userid == user_id) \
+        .scalar()
 
     return render_template('profile.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
 
@@ -250,26 +278,30 @@ def profile():
 def editprofile():
     if 'userid' not in session:
         return redirect('/')
+
+    user_id = session['userid']
     
     if request.method == 'POST':
+        profile = Profile.query.get(user_id)
+
         if request.form.get('username'):
-            username = request.form.get('username')
-            db.execute("UPDATE profile SET username = ? WHERE user_id = ?", username, session['userid'])
+            profile.username = request.form.get('username')
 
         if request.form.get('age').isdigit():
-            age = int(request.form.get('age'))
-            db.execute("UPDATE profile SET age = ? WHERE user_id = ?", age, session['userid'])
+            profile.age = int(request.form.get('age'))
 
         if request.form.get('gender').isdigit():
-            if 0 <= int(request.form.get('gender')) <= 100:
-                gender = int(request.form.get('gender'))
-                db.execute("UPDATE profile SET gender = ? WHERE user_id = ?", gender, session['userid'])
-        
+            gender = int(request.form.get('gender'))
+            if 0 <= gender <= 100:
+                profile.gender = gender
+
+        db.session.commit()
         return redirect('/profile')
     
-    user_profile = db.execute("SELECT * FROM profile WHERE user_id = ?", session['userid'])[0]
-
+    user_profile = Profile.query.get(user_id)
+    
     return render_template('editprofile.html', user_profile=user_profile)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
