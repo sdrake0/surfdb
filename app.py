@@ -5,6 +5,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy import func
 from db import db  # Import `db` from `db.py`
 from models import Map, Rating, User, Profile
 
@@ -18,7 +19,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure SQLAlchemy to use PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://u7cu09fjkpg1qb:p780e9b4cd28b981a8bb95b57d8670c6007d977ec1f5e239e318ea8335bc76e70@c9uss87s9bdb8n.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d6egq4keh844gb' # os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database and migration objects
@@ -51,23 +52,32 @@ def home():
 
 @app.route('/map/<string:map_name>', methods=['GET', 'POST'])
 def map_page(map_name):
+    # Construct the subquery for the most common surf type
+    surf_type_subquery = db.session.query(
+        Rating.surftype,
+        func.count().label('count')
+    ).filter(Rating.map_id == Map.map_id)\
+     .group_by(Rating.surftype)\
+     .order_by(func.count().desc())\
+     .limit(1).subquery()
+
     # Fetch the map data from the database
-    map_data = db.session.query(
+    map_data_query = db.session.query(
         Map,
-        db.func.count(Rating.map_id).label('rating_count'),
-        db.func.avg(Rating.rating).label('average_rating'),
-        db.func.avg(Rating.tier).label('usertier'),
-        db.func.coalesce(
-            db.func.subquery(
-                db.session.query(Rating.surftype)
-                .filter(Rating.map_id == Map.map_id)
-                .group_by(Rating.surftype)
-                .order_by(db.func.count(Rating.surftype).desc())
-                .limit(1)
-            ),
-            'Unknown'
-        ).label('surftype')
-    ).outerjoin(Rating, Map.map_id == Rating.map_id).filter(Map.name == map_name).group_by(Map.map_id).first()
+        func.count(Rating.map_id).label('rating_count'),
+        func.avg(Rating.rating).label('average_rating'),
+        func.avg(Rating.tier).label('usertier')
+    ).outerjoin(Rating, Map.map_id == Rating.map_id)\
+     .filter(Map.name == map_name)\
+     .group_by(Map.map_id)
+
+    # Execute the query
+    map_data = map_data_query.first()
+
+    # Fetch the most common surf type separately
+    surf_type_query = db.session.query(
+        func.coalesce(surf_type_subquery.c.surftype, 'Unknown')
+    ).scalar()
 
     # Check if the map exists
     if not map_data:
@@ -86,12 +96,12 @@ def map_page(map_name):
         'rating_count': map_data.rating_count,
         'average_rating': map_data.average_rating,
         'usertier': map_data.usertier,
-        'surftype': map_data.surftype
+        'surftype': surf_type_query
     }
 
     loggedin = False
-
     types = ['Unit', 'Tech', 'Maxvel', 'Combo', 'Other']
+
     # Note user logged in if in session
     if 'userid' in session:
         user_ratings = Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).first()
@@ -102,27 +112,41 @@ def map_page(map_name):
 
     if request.method == 'POST':
         # Get the user's rating, tier, and type from the form or request data
-        userrating = float(request.form.get('rating', 0))
-        usertier = float(request.form.get('tier', 0))
+        userrating = request.form.get('rating', 0)
+        usertier = request.form.get('tier', 0)
         usertype = request.form.get('type')
 
-        # Check if the user has already rated the map
-        if loggedin:
-            previous_rating = Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).first()
+        try:
+            userrating = float(userrating)
+            usertier = float(usertier)
 
-            if not previous_rating:
-                new_rating = Rating(map_id=map_data_dict['map_id'], userid=session['userid'])
-                db.session.add(new_rating)
-            
-            if 1 <= userrating <= 10:
-                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'rating': userrating})
-            if 1 <= usertier < 9:
-                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'tier': usertier})
-            if usertype in types:
-                Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).update({'surftype': usertype})
+            if loggedin:
+                previous_rating = Rating.query.filter_by(map_id=map_data_dict['map_id'], userid=session['userid']).first()
 
-            db.session.commit()
-        
+                if not previous_rating:
+                    new_rating = Rating(
+                        map_id=map_data_dict['map_id'],
+                        userid=session['userid'],
+                        rating=userrating if 1 <= userrating <= 10 else None,
+                        tier=usertier if 1 <= usertier < 9 else None,
+                        surftype=usertype if usertype in types else None
+                    )
+                    db.session.add(new_rating)
+                else:
+                    # Update the existing rating
+                    if 1 <= userrating <= 10:
+                        previous_rating.rating = userrating
+                    if 1 <= usertier < 9:
+                        previous_rating.tier = usertier
+                    if usertype in types:
+                        previous_rating.surftype = usertype
+
+                db.session.commit()
+
+        except ValueError:
+            # Handle the case where rating or tier are not valid numbers
+            pass
+
         return redirect(url_for('map_page', map_name=map_data_dict['name']))
 
     return render_template('map.html', map_data=map_data_dict, user_data=user_data, loggedin=loggedin)
@@ -184,7 +208,25 @@ def search():
     sort = request.args.get('sort')
 
     # Base query
-    query = db.session.query(Map).outerjoin(Rating).group_by(Map.map_id)
+    query = db.session.query(
+        Map.map_id,
+        Map.name,
+        Map.type,
+        Map.tier,
+        Map.youtube,
+        Map.mapper,
+        db.func.avg(Rating.rating).label('average_rating'),
+        db.func.avg(Rating.tier).label('usertier'),
+        db.case(
+            (db.func.lower(Map.name).like(db.func.lower(f"%{map_name}%")), 0),
+            (db.func.lower(Map.name).like(db.func.lower(f"{map_name}%")), 1),
+            (db.func.lower(Map.name).like(db.func.lower(f"%{map_name}")), 2),
+            else_=3
+        ).label('priority'),
+        db.func.strpos(db.func.lower(Map.name), db.func.lower(map_name)).label('name_position') if map_name else db.literal_column('0').label('name_position')
+    ).outerjoin(Rating).group_by(
+        Map.map_id, Map.name, Map.type, Map.tier, Map.youtube, Map.mapper
+    )
 
     # Filtering
     if map_name:
@@ -194,31 +236,24 @@ def search():
     if map_tier:
         query = query.filter(Map.tier == map_tier)
 
-    # Aggregation
-    query = query.add_columns(
-        db.func.avg(Rating.rating).label('average_rating'),
-        db.func.avg(Rating.tier).label('usertier'),
-        db.case(
-            [
-                (db.func.lower(Map.name) == db.func.lower(map_name), 0),
-                (db.func.lower(Map.name).like(db.func.lower(f"{map_name}%")), 1),
-                (db.func.lower(Map.name).like(db.func.lower(f"%{map_name}%")), 2)
-            ],
-            else_=3
-        ).label('priority'),
-        db.func.position(db.func.lower(map_name)).label('name_position')
-    )
-
     # Sorting
     if sort:
         if sort == "hightier":
-            query = query.order_by('priority', 'name_position', Map.tier.desc())
+            query = query.order_by('priority', Map.tier.desc())
         elif sort == "lowtier":
-            query = query.order_by('priority', 'name_position', Map.tier.asc())
+            query = query.order_by('priority', Map.tier.asc())
         elif sort == "highrate":
-            query = query.order_by('priority', 'name_position', 'average_rating.desc()')
+            query = query.order_by(
+                'priority',
+                db.case((db.func.count(Rating.rating) == 0, 0), else_=1).desc(),
+                db.desc('average_rating')
+            )
         elif sort == "lowrate":
-            query = query.order_by('priority', 'name_position', 'average_rating.asc()')
+            query = query.order_by(
+                'priority',
+                db.case((db.func.count(Rating.rating) == 0, 0), else_=1).desc(),
+                db.asc('average_rating')
+            )
         else:
             query = query.order_by('priority', 'name_position', Map.name)
     else:
@@ -229,6 +264,9 @@ def search():
     results = query.all()
 
     return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+
+
+
 
 
 

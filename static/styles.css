@@ -47,7 +47,7 @@ body {
     text-decoration: none;
     padding: 10px 20px;
     display: block;
-    background-color: #513cca;
+    background-color: #5e3dcb;
     border-radius: 10px;
 }
 
@@ -186,7 +186,7 @@ table {
 
 thead th {
     background-color: #6a3ad1; 
-    color: #333; 
+    color: #ffffff; 
     padding: 12px 15px; 
     text-align: center; 
 }

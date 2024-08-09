@@ -26,7 +26,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     googleid = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
-    name = db.Column(db.String, nullable=True)  # Made nullable to match schema
+    name = db.Column(db.String, nullable=True)
     ratings = db.relationship('Rating', backref='user', lazy=True)
 
 class Profile(db.Model):

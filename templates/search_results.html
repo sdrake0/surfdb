@@ -110,7 +110,11 @@
                 <p class="mapinfo">Mapper: {{ first_row.mapper }}</p>
                 <p class="mapinfo">Type: {{ first_row.type }}</p>
                 <p class="mapinfo">Tier: {{ first_row.tier }}</p>
-                <p class="mapinfo">User Tier: {{ first_row.usertier }}</p>
+                {% if first_row.usertier == none %}
+                    <p class="mapinfo">User Tier: N/A</p>
+                {% else %}
+                    <p class="mapinfo">User Tier: {{ first_row.usertier|round(1) }}</p>
+                {% endif %}
                 {% if first_row.average_rating == none %}
                     <p class="mapinfo">Average Rating: - / 10</p>
                 {% else %}
