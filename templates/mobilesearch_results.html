@@ -1,0 +1,84 @@
+{% extends "mobilelayout.html" %}
+
+{% block main %}
+
+<div>
+    <form id="search-form" method="GET" action="/search">
+        <div class="search-container">
+            <input type="text" class="search-bar" id="search-input" name="map" placeholder="Search for Maps" autofocus autocomplete="off">
+        </div>
+        <button type="submit" class="search-button">Search</button>       
+        <select name="type" class="filter">
+            <option value="">All Types</option>
+            <option value="Linear">Linear</option>
+            <option value="Staged">Staged</option>
+            <option value="Staged-Linear">Staged-Linear</option>
+        </select>
+        <select name="tier" class="filter">
+            <option value="">All Tiers</option>
+            <option value="1">Tier 1</option>
+            <option value="2">Tier 2</option>
+            <option value="3">Tier 3</option>
+            <option value="4">Tier 4</option>
+            <option value="5">Tier 5</option>
+            <option value="6">Tier 6</option>
+            <option value="7">Tier 7</option>
+            <option value="8">Tier 8</option>
+        </select>
+        <select name="sort" class="filter">
+            <option value="">Sort by</option>
+            <option value="hightier">Highest Tier</option>
+            <option value="lowtier">Lowest Tier</option>
+            <option value="highrate">Highest Rating</option>
+            <option value="lowrate">Lowest Rating</option>
+        </select>     
+    </form>
+</div>
+<div>
+    <div class="container3">
+        <div class="results">
+            <div class="container2">
+                <div class="table-wrapper">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Map Name</th>
+                                <th>Type</th>
+                                <th>Tier</th>
+                                <th>User Tier</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                                <tr>
+                                    <td class="plain"><a href="{{ url_for('map_page', map_name=result.name) }}">{{ result.name }}</a></td>
+                                    <td>{{ result.type }}</td>
+                                    <td>{{ result.tier }}</td>
+                                    {% if result.usertier == none %}
+                                        <td>N/A</td>
+                                    {% else %}
+                                        <td>{{ result.usertier|round(1) }}</td>
+                                    {% endif %}
+                                    {% if result.average_rating == none %}
+                                        <td>- / 10</td>
+                                    {% else %}
+                                        {% if result.average_rating|round(2) < 4 %}
+                                            {% set class_name = 'rating-red' %}
+                                        {% elif 4 <= result.average_rating|round(2) <= 7 %}
+                                            {% set class_name = 'rating-yellow' %}
+                                        {% else %}
+                                            {% set class_name = 'rating-green' %}
+                                        {% endif %}
+                                        <td class="{{ class_name }}">{{ result.average_rating|round(1) }} / 10</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

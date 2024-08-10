@@ -159,8 +159,10 @@ def map_page(map_name):
             pass
 
         return redirect(url_for('map_page', map_name=map_data_dict['name']))
-
-    return render_template('map.html', map_data=map_data_dict, user_data=user_data, loggedin=loggedin)
+    if is_mobile():
+        return render_template('mobilemap.html', map_data=map_data_dict)
+    else:
+        return render_template('map.html', map_data=map_data_dict, user_data=user_data, loggedin=loggedin)
 
 @app.route('/go-to-map', methods=['POST'])
 def go_to_map():
@@ -274,20 +276,24 @@ def search():
 
     results = query.all()
 
-    return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
-
-
-
-
-
+    if is_mobile():
+        return render_template('mobilesearch_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
+    else:
+        return render_template('search_results.html', query=map_name, search_type=map_type, tier=map_tier, results=results)
 
 @app.route("/howto")
 def howto():
-    return render_template('howto.html')
+    if is_mobile():
+        return render_template('mobilehowto.html')
+    else:
+        return render_template('howto.html')
 
 @app.route("/request", methods=['GET', 'POST'])
 def requestform():
-    return render_template('requestform.html')
+    if is_mobile():
+        return render_template('mobilerequestform.html')
+    else:
+        return render_template('requestform.html')
 
 @app.route("/profile")
 def profile():
@@ -370,7 +376,11 @@ def viewprofile(profileid):
             totalratings = db.session.query(db.func.count(Rating.rating)) \
                 .filter(Rating.userid == user_id) \
                 .scalar()
-            return render_template('profiles.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
+            
+            if is_mobile():
+                return render_template('mobileprofiles.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
+            else:
+                return render_template('profiles.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
         else:
             return 'User not found', 404
     else:

@@ -59,22 +59,25 @@ body {
 .dropdown {
     display: none;
     flex-direction: column;
-    background-color: #333;
-    position: absolute;
+    background-color: #5e3dcb;
+    position: fixed;
     top: 60px;
     right: 10px;
     width: 200px;
     z-index: 1001;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
 }
 
 .dropdown a {
-    padding: 10px;
+    padding: 15px;
     text-align: left;
-    border-bottom: 1px solid #444;
-}
-
-.dropdown a:last-child {
-    border-bottom: none;
+    border: 1px solid white;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    z-index: 1002;
 }
 
 .dropdown a:hover {
@@ -104,26 +107,27 @@ body {
     position: relative;
     background-color: #422e94;
     box-sizing: border-box;
+    z-index: 1;
 }
 
 .section {
     padding-top: 80px;
     padding-bottom: 80px;
     position: relative;
+    z-index: 1;
 }
 
 .container {
     flex-direction: column;
     justify-content: center;
-    width: 100%;
+    width: 80%;
     max-width: 1230px;
     min-height: 30px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 50px;
-    padding-right: 50px;
+    margin-left: 10%;
+    margin-right: 10%;
     display: block;
     position: relative;
+    z-index: 1;
 }
 
 .heading {
@@ -151,10 +155,6 @@ body {
 .text-box {
     max-width: 100%;
     position: relative;
-}
-
-.text-box._500px {
-    max-width: 500px;
 }
 
 .w-layout-grid {
@@ -216,9 +216,10 @@ img {
     flex-direction: row;
     justify-content: space-around;
     flex-wrap: wrap;
+    max-width: 100%;
 }
 .table-container {
-    width: 100%;
+    width: 90%;
 }
 /* Table */
 table {
@@ -304,6 +305,7 @@ tbody tr:hover {
     flex-wrap: wrap;
     margin-right: 10px;
     font-family: 'Abel', sans-serif;
+    width: 100%;
 }
 
 .search-container {
@@ -316,10 +318,11 @@ tbody tr:hover {
     margin-top: 10px;
     margin-left: 10px ;
     flex: 2;
+    min-width: 60%;
 }
 
 .search-bar {
-    width: 100%;
+    width: 60%;
     border: none;
     font-size: 30px;
     background-color: #4b2892;
@@ -339,9 +342,10 @@ tbody tr:hover {
     font-size: 16px;
     background-color: #9766e5;
     border-radius: 4px;
-    margin: 0 10px;
+    margin: 10px;
     outline: none;
-    max-width: 200px;
+    min-width: 25%;
+    max-width: 30%;
     font-family: 'Abel', sans-serif;
 }
 
@@ -355,6 +359,8 @@ tbody tr:hover {
     cursor: pointer;
     flex-shrink: 0;
     font-family: 'Abel', sans-serif;
+    width: 20%;
+    margin-right: 10px;
 }
 
 .search-button:hover {
@@ -367,28 +373,34 @@ tbody tr:hover {
     overflow: hidden;
 }
 
+.table-wrapper {
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    width: 100%; /* Ensure it uses the full width of the container */
+    margin: 0 auto; /* Center the table wrapper */
+}
+
 .styled-table {
     border-collapse: separate;
     border-spacing: 10px 10px;
     border-radius: 10px;
-    overflow: hidden;
+    max-width: 100%; /* Ensure it does not exceed the container width */
+    width: 100%; /* Ensure it uses the full width of the container */
+    display: block; /* Ensure the table can scroll horizontally */
 }
 
 .styled-table thead th {
     background-color: #a373fd;
-    color: #333; 
-    padding: 12px 15px; 
-    border-radius: 10px; 
+    color: #ffffff;
+    padding: 12px 15px;
+    border-radius: 10px;
 }
 
 .styled-table tbody tr {
-    background-color: #6237d7; 
-    border-radius: 10px !important;
+    background-color: #6237d7;
 }
 
 .styled-table tbody td {
     padding: 12px 15px;
-    margin: 10px;
     border-radius: 10px;
 }
 
@@ -398,12 +410,13 @@ tbody tr:hover {
 
 .container3 {
     display: flex;
+    width: 100%;
     justify-content: space-between;
 }
 
 .results {
     text-align: center;
-    width: 50%;
+    max-width: 100%;
     padding:20px;
     box-sizing: border-box;
 }
@@ -509,8 +522,8 @@ iframe {
 
 .results2 {
     text-align: center;
-    width: 30%;
-    padding:20px;
+    width: 100%;
+    padding: 10px;
     box-sizing: border-box;
 }
 
@@ -533,7 +546,7 @@ iframe {
 }
 
 .mapvid {
-    width: 45%;
+    width: 100%;
     padding:20px;
     box-sizing: border-box;
 }

@@ -1,0 +1,57 @@
+{% extends "mobilelayout.html" %}
+
+{% block main %}
+
+<div class="page-wrapper">
+    <div class="section">
+        <div class="container">
+            <div class="text-box">
+                <h1 class="heading h1">{{ user_profile.username }}</h1>
+                <p class="paragraph large">Age: {{ user_profile.age }}</p>
+                {% if user_profile.gender %}
+                    <div class="slidecontainer">
+                        <p class="paragraph largeprofile">Man
+                        <input type="range" min="1" max="100" value="{{ user_profile.gender }}" class="lockedslider" id="gender">
+                        Woman</p>
+                    </div>
+                {% endif %}
+                <p class="paragraph large">Maps rated: {{ totalratings }}</p>
+            </div>
+        </div>
+    </div>           
+</div>
+
+<div>
+    <div class="container2">
+        <div class="table-container">
+            <h2 class="bodyheading">Favorite Maps</h2>
+            <table class="indextable">
+                <thead>
+                    <tr>
+                        <th>Map Name</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for favoritemap in favoritemaps %}
+                        {% if favoritemap.rating %}
+                            {% if favoritemap.rating < 4 %}
+                                {% set class_name = 'rating-red' %}
+                            {% elif 4 <= favoritemap.rating <= 7 %}
+                                {% set class_name = 'rating-yellow' %}
+                            {% else %}
+                                {% set class_name = 'rating-green' %}
+                            {% endif %}
+                        <tr>
+                            <td class="plain"><a href="{{ url_for('map_page', map_name=favoritemap.name) }}">{{ favoritemap.name }}</a></td>
+                            <td class="{{ class_name }}">{{ favoritemap.rating }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
