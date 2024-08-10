@@ -11,49 +11,86 @@ body {
     align-items: center;
     justify-content: space-between;
     background-color: #5e3dcb;
-    padding: 10px 20px;
+    padding: 10px;
     overflow: hidden;
-    height: 40px;
 }
 
 .navbar-logo img {
-    height: 80px;
-    width: auto;
-    object-fit: cover;
-    object-position: center;
+    height: 40px;
 }
 
 .navbar-menu {
     list-style: none;
     display: flex;
-    margin: 0;
-    padding: 0;
 }
 
 .navbar-menu li {
-    margin-left: 20px;
+    margin: 0 10px;
     font-family: 'Abel', sans-serif;
-    font-size: 20px;
-    padding: 10px 20px;
     font-weight: bold;
-    display: block;
 }
 
 .navbar-menu li a {
     color: rgb(255, 255, 255);
     font-weight: bold;
     font-family: 'Abel', sans-serif;
-    font-size: 20px;
     text-decoration: none;
-    padding: 10px 20px;
-    display: block;
-    background-color: #5e3dcb;
-    border-radius: 10px;
 }
 
 .navbar-menu li a:hover {
     background-color: #4a2ba7;
-    border-radius: 5px;
+}
+
+#profile-container, #logout-container {
+    display: none;
+}
+
+/* Hamburger menu icon */
+.menu-icon {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+/* Dropdown menu (hidden by default) */
+.dropdown {
+    display: none;
+    flex-direction: column;
+    background-color: #333;
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 200px;
+}
+
+.dropdown a {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+.dropdown a:last-child {
+    border-bottom: none;
+}
+
+.dropdown a:hover {
+    background-color: #444;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navbar-menu {
+        display: none;
+    }
+
+    .menu-icon {
+        display: block;
+    }
+
+    .dropdown {
+        display: none;
+    }
 }
 
 .page-wrapper {

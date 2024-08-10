@@ -26,6 +26,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)  # Initialize `db` with the app
 migrate = Migrate(app, db)
 
+def is_mobile():
+    user_agent = request.headers.get('User-Agent')
+    mobile_browsers = ['iphone', 'android', 'blackberry', 'nokia', 'opera mini', 'windows phone', 'silk']
+
+    if any(browser in user_agent.lower() for browser in mobile_browsers):
+        return True
+    return False
+
 @app.route('/')
 def home():
     # Fetch the top 10 most popular maps based on rating count
@@ -47,8 +55,11 @@ def home():
     ).order_by(
         db.func.avg(Rating.rating).desc()
     ).limit(10).all()
-
-    return render_template('index.html', popular_maps=popular_maps, best_maps=best_maps)
+    
+    if is_mobile():
+        return render_template('mobileindex.html')
+    else:
+        return render_template('index.html', popular_maps=popular_maps, best_maps=best_maps)
 
 @app.route('/map/<string:map_name>', methods=['GET', 'POST'])
 def map_page(map_name):
@@ -340,6 +351,30 @@ def editprofile():
     
     return render_template('editprofile.html', user_profile=user_profile)
 
+@app.route("/profiles/<profileid>", methods=['GET'])
+def viewprofile(profileid):
+    if profileid.isdigit():
+        user_profile = Profile.query.get(profileid)
+        if user_profile:
+            user_id = user_profile.user_id
+            # Fetch favorite maps
+            favoritemaps = db.session.query(Map.name, db.func.avg(Rating.rating).label('rating')) \
+                .join(Rating, Map.map_id == Rating.map_id) \
+                .filter(Rating.userid == user_id) \
+                .group_by(Map.map_id) \
+                .order_by(db.func.avg(Rating.rating).desc()) \
+                .limit(10) \
+                .all()
+
+            # Fetch total ratings count
+            totalratings = db.session.query(db.func.count(Rating.rating)) \
+                .filter(Rating.userid == user_id) \
+                .scalar()
+            return render_template('profiles.html', user_profile=user_profile, favoritemaps=favoritemaps, totalratings=totalratings)
+        else:
+            return 'User not found', 404
+    else:
+        return 'Invalid profile ID', 400
 
 if __name__ == '__main__':
     app.run(debug=True)

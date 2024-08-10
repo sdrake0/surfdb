@@ -17,32 +17,6 @@
                         </div>
                     {% endif %}
                     <p class="paragraph large">Maps rated: {{ totalratings }}</p>
-                    <p class="paragraph large">Share your profile: <span id="textToCopy" class="copy-text">https://www.surfdb.info/profiles/{{ user_profile.profile_id }}</span></p>
-                    <div class="spacer _16"></div>
-                    <a href="/editprofile" class="button w-button">Edit Profile</a>
-                    <script>
-                        // JavaScript to handle the copying
-                        document.getElementById("textToCopy").addEventListener("click", function() {
-                            // Create a temporary textarea element to hold the text to be copied
-                            const tempTextArea = document.createElement("textarea");
-                            tempTextArea.value = this.textContent;
-                            
-                            // Append it to the document body
-                            document.body.appendChild(tempTextArea);
-                            
-                            // Select the text inside the textarea
-                            tempTextArea.select();
-                            
-                            // Copy the selected text to the clipboard
-                            document.execCommand("copy");
-                            
-                            // Remove the temporary textarea from the document
-                            document.body.removeChild(tempTextArea);
-                            
-                            // Optionally, give some feedback to the user
-                            alert("Text copied to clipboard!");
-                        });
-                    </script>
                 </div>
             </div>
         </div>
