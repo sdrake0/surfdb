@@ -55,9 +55,9 @@ def home():
     ).order_by(
         db.func.avg(Rating.rating).desc()
     ).limit(10).all()
-    
+
     if is_mobile():
-        return render_template('mobileindex.html')
+        return render_template('mobileindex.html', popular_maps=popular_maps, best_maps=best_maps)
     else:
         return render_template('index.html', popular_maps=popular_maps, best_maps=best_maps)
 

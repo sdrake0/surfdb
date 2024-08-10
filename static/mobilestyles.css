@@ -13,6 +13,8 @@ body {
     background-color: #5e3dcb;
     padding: 10px;
     overflow: hidden;
+    position: relative;
+    z-index: 1000;
 }
 
 .navbar-logo img {
@@ -62,6 +64,7 @@ body {
     top: 60px;
     right: 10px;
     width: 200px;
+    z-index: 1001;
 }
 
 .dropdown a {
@@ -94,10 +97,13 @@ body {
 }
 
 .page-wrapper {
-    width: 100%;
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     min-height: 50vh;
     position: relative;
     background-color: #422e94;
+    box-sizing: border-box;
 }
 
 .section {
@@ -143,7 +149,7 @@ body {
 }
 
 .text-box {
-    max-width: 650px;
+    max-width: 100%;
     position: relative;
 }
 
@@ -207,10 +213,12 @@ img {
 
 .container2 {
     display: flex;
+    flex-direction: row;
     justify-content: space-around;
+    flex-wrap: wrap;
 }
 .table-container {
-    width: 45%;
+    width: 100%;
 }
 /* Table */
 table {
