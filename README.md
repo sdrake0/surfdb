@@ -7,6 +7,8 @@ There are a few different websites that have information about surf maps, but so
 My goal is to have one location where you can have all the relevant information about surfing a particular map.
 Additionally, I want users to be able to rate the maps they play and let others know what they think of it.
 
+https://www.surfdb.info
+
 Let's go through the app.py:
 
 This is a web application that uses flask, prostgresql, html, css, and jinja.
