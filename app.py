@@ -63,15 +63,7 @@ def home():
 
 @app.route('/map/<string:map_name>', methods=['GET', 'POST'])
 def map_page(map_name):
-    # Construct the subquery for the most common surf type
-    surf_type_subquery = db.session.query(
-        Rating.surftype,
-        func.count().label('count')
-    ).filter(Rating.map_id == Map.map_id)\
-     .group_by(Rating.surftype)\
-     .order_by(func.count().desc())\
-     .limit(1).subquery()
-
+    
     # Fetch the map data from the database
     map_data_query = db.session.query(
         Map,
@@ -85,14 +77,23 @@ def map_page(map_name):
     # Execute the query
     map_data = map_data_query.first()
 
+    # Check if the map exists
+    if not map_data:
+        return render_template('nomap.html')
+    
+    # Construct the subquery for the most common surf type
+    surf_type_subquery = db.session.query(
+        Rating.surftype,
+        func.count().label('count')
+    ).filter(Rating.map_id == map_data[0].map_id)\
+     .group_by(Rating.surftype)\
+     .order_by(func.count().desc())\
+     .limit(1).subquery()
+
     # Fetch the most common surf type separately
     surf_type_query = db.session.query(
         func.coalesce(surf_type_subquery.c.surftype, 'Unknown')
     ).scalar()
-
-    # Check if the map exists
-    if not map_data:
-        return render_template('nomap.html')
 
     # Convert the map_data tuple to a dictionary-like object
     map_data_dict = {
