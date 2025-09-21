@@ -11,7 +11,7 @@ from models import Map, Rating, User, Profile
 
 # Configure application
 app = Flask(__name__, static_folder='static')
-CLIENT_ID = '370465136464-d21p30j6pjg46adpmfqc50qjs7h30mvi.apps.googleusercontent.com'
+CLIENT_ID = # google client id
 
 # Configure session to use filesystem for storing session data
 app.config["SESSION_PERMANENT"] = False
